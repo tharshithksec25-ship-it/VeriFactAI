@@ -26,7 +26,11 @@ router.post("/analyze", async (req: Request, res: Response): Promise<void> => {
 
         res.json(analysis);
     } catch (error) {
-        console.error("Route Error:", error);
+        console.error("Route Error - Full Details:", error);
+        if (error instanceof Error) {
+            console.error("Route Error Message:", error.message);
+            console.error("Route Error Stack:", error.stack);
+        }
         res.status(500).json({ error: "Internal Server Error" });
     }
 });

@@ -31,6 +31,12 @@ Be objective, skeptical, and thorough.
 If the input content is harmful, hateful, or explicit, refuse to analyze it and set "credibility_score" to 0 and "analysis_summary" to "Content flagged as unsafe/violating policy."
 `;
 
+// Helper to strip markdown code blocks if present
+const stripMarkdown = (text: string): string => {
+    // Remove ```json and ``` wrappers if present
+    return text.replace(/^```json\s*\n?/i, '').replace(/\n?```\s*$/, '').trim();
+};
+
 export const analyzeContent = async (text: string) => {
     try {
         const result = await model.generateContent({
@@ -49,10 +55,18 @@ export const analyzeContent = async (text: string) => {
         });
 
         const response = await result.response;
-        const jsonString = response.text();
-        return JSON.parse(jsonString);
+        const rawText = response.text();
+
+        console.log("Raw Gemini Response:", rawText.substring(0, 200)); // Log first 200 chars
+
+        const cleanedText = stripMarkdown(rawText);
+        return JSON.parse(cleanedText);
     } catch (error) {
-        console.error("Gemini API Error:", error);
+        console.error("Gemini API Error Details:", error);
+        if (error instanceof Error) {
+            console.error("Error message:", error.message);
+            console.error("Error stack:", error.stack);
+        }
         throw new Error("Failed to analyze content.");
     }
 };
